@@ -52,27 +52,30 @@
 				</section>
 
 				<section data-background="#110022">
-					<h2>Why do we need these?</h2>
+					<h2>Why Presenters?</h2>
 					<p>
-            If we try to follow the "Single Responsibility Principle"
+            "Single Responsibility Principle"
             <blockquote>
+              &ldquo;
               every class should have a single responsibility, and that responsibility should be entirely encapsulated by the class. All its services should be narrowly aligned with that responsibility
+              &rdquo;
             </blockquote>
-            we'd like to keep display logic encapsulated.  
 					</p>
           <p>
-            Rails is designed to follow a database table from the database straight through to the view with little or no knowledge of other models.  This does not work for all domains.
-          </p>
-          <p>
-            By building a presenter layer, we have another spot where we can test business logic.
+            Keep your (display) logic encapsulated.  
           </p>
 				</section>
 
 				<section data-background="#110033">
-					<h2>Types of Presenters</h2>
-					<p>
-            type 1
-					</p>
+					<section class="fragments">
+					  <h2>Where do you use them?</h2>
+						<p class="fragment">display of multiple models</p>
+						<ol>
+							<li class="fragment"><code>any type</code></li>
+							<li class="fragment"><em>of view</em></li>
+							<li class="fragment"><strong>fragments</strong></li>
+						</ol>
+          </section>
 				</section>
 
 				<section data-background="#220044">
