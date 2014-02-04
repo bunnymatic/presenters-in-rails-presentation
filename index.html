@@ -15,8 +15,8 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 		<link rel="stylesheet" href="css/reveal.min.css">
-		<link rel="stylesheet" href="css/theme/default.css" id="theme">
-
+		<link rel="stylesheet" href="css/theme/night.css" id="theme">
+		<link rel="stylesheet" href="css/customizations.css">
 		<!-- For syntax highlighting -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
 
@@ -38,23 +38,32 @@
 			<div class="slides">
 				<section data-background="#110011">
 					<h1>Presenters In Rails</h1>
-					<h3>Keeping things organized</h3>
+					<h4>Contain your domain knowledge</h4>
 					<p>
 						<small><a href="http://rcode5.com">Mr Rogers</a> / <a href="http://twitter.com/rcode5">@rcode5</a></small>
 					</p>
 				</section>
 
 				<section data-background="#000022">
-					<h2>What is a Presenter?</h2>
-					<p>
-						An object that typically is constructed at the Controller level to manage display or presentation business logic of a model or combination of models.
-					</p>
+					<section class="fragments">
+					  <h2>Rails is MVC</h2>
+						<ul>
+							<li class="fragment"><strong>M</strong>&nbsp;odel</li>
+							<li class="fragment"><strong>V</strong>&nbsp;iew</li>
+							<li class="fragment"><strong>C</strong>&nbsp;ontroller</li>
+						</ul>
+            <p class="fragment">
+              Fine for simple stuff
+            </p>
+          </section>
 				</section>
 
 				<section data-background="#110022">
-					<h2>Why Presenters?</h2>
+					<h2>Why would we need more?</h2>
 					<p>
-            "Single Responsibility Principle"
+            If we try to follow the 
+            </p>
+          <p><em>Single Responsibility Principle</em>
             <blockquote>
               &ldquo;
               every class should have a single responsibility, and that responsibility should be entirely encapsulated by the class. All its services should be narrowly aligned with that responsibility
@@ -62,143 +71,166 @@
             </blockquote>
 					</p>
           <p>
-            Keep your (display) logic encapsulated.  
+            MVC may not be enough
           </p>
 				</section>
+        
+        <section data-background="#110033">
+          <h2>Simplistic Rails</h2>
+					<pre><code data-trim contenteditable class='rb'>
+# users_controller.rb
+def index
+  @users = User.all
+end
+					</code></pre>
+					<pre><code data-trim contenteditable class='haml'>
+/ users/show.slim
+h2 Users
+table
+  - @users.select{|u| u.active}.sort_by{|u| [u.first_name, u.last_name].map(&:downcase)}.each do |user| 
+    tr
+      td.name = "#{user.first_name} #{user.last_name}"
+      td.age = "#{Time.zone.now.year - user.birthdate.year}"
+					</code></pre>
+          </p>
+        </section>
 
-				<section data-background="#110033">
+        <section data-background="#220022">
+          <h2>Alternate Plain ol' Rails</h2>
+					<pre><code data-trim contenteditable class="ruby">
+# user.rb
+class User
+  scope :by_name, -> { order('first_name, last_name') }
+  scope :active, -> { where(:active => true) }
+end
+					</code></pre>
+					<pre><code data-trim contenteditable class="ruby">
+# users_controller.rb
+def index
+  @users = User.active.by_name
+end
+					</code></pre>
+					<pre><code data-trim contenteditable class="haml">
+/ users/show.slim
+h2 Users
+table
+  - @users.each do |user| 
+    tr
+      td.name = "#{user.first_name} #{user.last_name}"
+      td.age = "#{Time.zone.now.year - user.birthdate.year}"
+					</code></pre>
+          </p>
+        </section>
+
+        <section data-background="#220011">
+          <h2>Rails + a Presenter (or two)</h2>
+					<pre><code data-trim contenteditable class="ruby">
+# user.rb
+class User
+  scope :by_name, -> { order('first_name, last_name') }
+  scope :active, -> { where(:active => true) }
+end
+					</code></pre>
+					<pre><code data-trim contenteditable class="ruby">
+# users_controller.rb
+def index
+  @users = UsersPresenter.new
+end
+					</code></pre>
+					<pre><code data-trim contenteditable class="haml">
+/ users/show.slim
+h2 Users
+table
+  - @users.each do |user| 
+    tr
+      td.name = user.name
+      td.age = user.age
+					</code></pre>
+          </p>
+        </section>
+
+        <section data-background="#330011">
+          <h2>The Presenters</h2>
+					<pre><code data-trim contenteditable class="ruby">
+# users_presenter.rb
+class UsersPresenter
+  def users
+    @users ||= User.active.by_name.map{|u| UserPresenter.new(u)}
+  end
+end
+					</code></pre>
+					<pre><code data-trim contenteditable class="ruby">
+# user_presenter.rb
+class UserPresenter
+
+  attr_reader :user
+
+  def initialize(user)
+    @user = user
+  end
+  def name
+    @name ||= [user.first_name, user.last_name].join(" ")
+  end
+  def age
+    @age ||= (Time.zone.now.year - user.birthdate.year)
+  end
+end
+					</code></pre>
+        </section>
+
+				<section data-background="#330022">
 					<section class="fragments">
-					  <h2>Where do you use them?</h2>
-						<p class="fragment">display of multiple models</p>
-						<ol>
-							<li class="fragment"><code>any type</code></li>
-							<li class="fragment"><em>of view</em></li>
-							<li class="fragment"><strong>fragments</strong></li>
-						</ol>
+					  <h2>What does this buy us?</h2>
+						<ul>
+							<li class="fragment">easy focused testing</li>
+							<li class="fragment">compartmentalization</li>
+							<li class="fragment">re-use across controller methods</li>
+							<li class="fragment"><em>Single Responsibility Principle</em>
+</li>
+						</ul>
           </section>
 				</section>
 
-				<section data-background="#220044">
-					<h2>Marvelous Unordered List</h2>
-					<ul>
-						<li>No order here</li>
-						<li>Or here</li>
-						<li>Or here</li>
-						<li>Or here</li>
-					</ul>
+				<section data-background="#220022">
+					<section class="fragments">
+					  <h2>And?</h2>
+            <ul>
+              <li class="fragment">memoize safely (stateless object/one time use)</li>
+              <li class="fragment">keep business logic out of AR models</li>
+              <li class="fragment">build domain models that encompass two AR models</li>
+              <li class="fragment">keep code complexity to a minimum (ABC Complexity)</li>
+            </ul>
+            <p class="fragment">try it... I bet you'll find more uses</p>
+          </section>
 				</section>
 
 				<section data-background="#220022">
-					<h2>Fantastic Ordered List</h2>
-					<ol>
-						<li>One is smaller than...</li>
-						<li>Two is smaller than...</li>
-						<li>Three!</li>
-					</ol>
-				</section>
-
-				<section data-background="#330022" data-markdown>
-					<script type="text/template">
-						## Markdown support
-
-						For those of you who like that sort of thing. Instructions and a bit more info available [here](https://github.com/hakimel/reveal.js#markdown).
-
-						```
-						<section data-markdown>
-						  ## Markdown support
-
-						  For those of you who like that sort of thing.
-						  Instructions and a bit more info available [here](https://github.com/hakimel/reveal.js#markdown).
-						</section>
-						```
-					</script>
-				</section>
-
-				<section data-background="#220022">
-					<h2>Clever Quotes</h2>
-					<p>
-						These guys come in two forms, inline: <q cite="http://searchservervirtualization.techtarget.com/definition/Our-Favorite-Technology-Quotations">
-						&ldquo;The nice thing about standards is that there are so many to choose from&rdquo;</q> and block:
-					</p>
-					<blockquote cite="http://searchservervirtualization.techtarget.com/definition/Our-Favorite-Technology-Quotations">
-						&ldquo;For years there has been a theory that millions of monkeys typing at random on millions of typewriters would
-						reproduce the entire works of Shakespeare. The Internet has proven this theory to be untrue.&rdquo;
-					</blockquote>
-				</section>
-
-				<section data-background="#220011">
-					<h2>Pretty Code</h2>
-					<pre><code data-trim contenteditable>
-function linkify( selector ) {
-  if( supports3DTransforms ) {
-
-    var nodes = document.querySelectorAll( selector );
-
-    for( var i = 0, len = nodes.length; i &lt; len; i++ ) {
-      var node = nodes[i];
-
-      if( !node.className ) {
-        node.className += ' roll';
-      }
-    }
-  }
-}
-					</code></pre>
-					<p>Courtesy of <a href="http://softwaremaniacs.org/soft/highlight/en/description/">highlight.js</a>.</p>
-				</section>
-
-				<section data-background="#330011">
-					<section id="fragments">
-						<h2>Fragmented Views</h2>
-						<p>Hit the next arrow...</p>
-						<p class="fragment">... to step through ...</p>
-						<ol>
-							<li class="fragment"><code>any type</code></li>
-							<li class="fragment"><em>of view</em></li>
-							<li class="fragment"><strong>fragments</strong></li>
-						</ol>
-
-						<aside class="notes">
-							This slide has fragments which are also stepped through in the notes window.
-						</aside>
-					</section>
-					<section>
-						<h2>Fragment Styles</h2>
-						<p>There's a few styles of fragments, like:</p>
-						<p class="fragment grow">grow</p>
-						<p class="fragment shrink">shrink</p>
-						<p class="fragment roll-in">roll-in</p>
-						<p class="fragment fade-out">fade-out</p>
-						<p class="fragment highlight-red">highlight-red</p>
-						<p class="fragment highlight-green">highlight-green</p>
-						<p class="fragment highlight-blue">highlight-blue</p>
-						<p class="fragment current-visible">current-visible</p>
-						<p class="fragment highlight-current-blue">highlight-current-blue</p>
-					</section>
-				</section>
-
-				<section data-background="#220011">
-					<h2>Spectacular image!</h2>
-					<a class="image" href="http://lab.hakim.se/meny/" target="_blank">
-						<img width="320" height="299" src="http://s3.amazonaws.com/hakim-static/portfolio/images/meny.png" alt="Meny">
-					</a>
+					<h2>Thanks for not sleeping</h2>
 				</section>
 
 				<section data-background="#110011">
 					<h2>References/Reading list</h2>
 					<ul>
-            <li><a href="http://martinfowler.com/eaaDev/">Martin Fowler's GUI Patterns</a></li>
-						<li><a href="http://blog.jayfields.com/2007/03/rails-presenter-pattern.html">Jay Fields' Thoughts - The Presenter Pattern</a></li>
+						<li><a href="http://blog.carbonfive.com/2014/01/07/presenters-to-widgets-with-activemodelconversion/">The Carbon Emitter - Presenters to Widgets</a></li>
+						<li><a href="http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/">Code Climate Blog - 7 Patterns to Refactor Fat ActiveRecord Models</a></li>
             <li><a href="http://blog.jayfields.com/2006/09/rails-model-view-controller-presenter.html">Jay Fields' Thoughts - Rails Model View Controller + Presenter?</a></li>
             <li><a href="http://weblog.jamisbuck.org/2006/10/18/skinny-controller-fat-model">Jamis Buck - Skinny Controller, Fat Model</a></li>
 						<li><a href="http://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility Principle (Wikipedia)</a></li>
-						<li><a href="http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/">Code Climate Blog - 7 Patterns to Refactor Fat ActiveRecord Models</a></li>
+            <li><a href="http://martinfowler.com/eaaDev/">Martin Fowler's GUI Patterns</a></li>
+            <li><a href="http://www.softwarerenovation.com/ABCMetric.pdf">ABC Metric for Code Complexity</a></li>
 					</ul>
-          <h2>Slides</h2>
+          <p>
+            &nbsp;
+          </p>
+          <h3>Slides</h3>
           <ul>
             <li><a href="http://github.com/bunnymatic/presenters-in-rails-presentation.git">http://github.com/bunnymatic/presenters-in-rails-presentation.git</a></li>
           </ul>
-				</section>
+          <h4>Contact</h4>
+          <p class='tiny'>
+            Mr Rogers | jon@carbonfive.com | <img class='logo', src="./i/GitHub-Mark-32px.png"> bunnymatic | <img class="logo" src="https://dev.twitter.com/sites/default/files/images_documentation/bird_blue_32.png"> @rcode5
+          </p>
+        </section>
 
 			</div>
 
