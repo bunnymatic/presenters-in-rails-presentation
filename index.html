@@ -26,8 +26,8 @@
 		</script>
 
 		<!--[if lt IE 9]>
-		<script src="lib/js/html5shiv.js"></script>
-		<![endif]-->
+		    <script src="lib/js/html5shiv.js"></script>
+		    <![endif]-->
 	</head>
 
 	<body>
@@ -61,9 +61,10 @@
 				<section data-background="#220022">
 					<h2>Why would we need more?</h2>
 					<p>
-            If we try to follow the 
-            </p>
-          <p><em>Single Responsibility Principle</em>
+            If we try to follow the
+          </p>
+          <p>
+            <em>Single Responsibility Principle</em>
             <blockquote>
               &ldquo;
               every class should have a single responsibility, and that responsibility should be entirely encapsulated by the class. All its services should be narrowly aligned with that responsibility
@@ -74,7 +75,27 @@
             MVC may not be enough
           </p>
 				</section>
-        
+
+				<section data-background="#220011">
+					<section class="fragments">
+					  <h2>Domain Model vs ActiveRecord</h2>
+						<ul>
+							<li class="fragment">An ActiveRecord object is a ruby wrapper on a database row</li>
+							<li class="fragment">A domain model might require business logic or domain model knowledge</li>
+              <li class="fragment"><em>Single Responsibility Principle</em></li>
+						</ul>
+          </section>
+				</section>
+
+        <section data-background="#110033">
+          <h2>Feature</h2>
+          <pre><code>
+            As a visitor to the site
+            I can see a list of all users and their ages
+            Sorted by name
+            So I can easily find out demographics of users in our system
+          </code></pre>
+        </section>
         <section data-background="#110033">
           <h2>Simplistic Rails</h2>
 					<pre><code data-trim contenteditable class='rb'>
@@ -86,80 +107,83 @@ end
 					<pre><code data-trim contenteditable class='haml'>
 / users/show.slim
 h2 Users
-table
-  - @users.select{|u| u.active}.sort_by{|u| [u.first_name, u.last_name].map(&:downcase)}.each do |user| 
-    tr
-      td.name = "#{user.first_name} #{user.last_name}"
-      td.age = "#{Time.zone.now.year - user.birthdate.year}"
+  table
+    - @users.select{|u| u.active}.sort_by{|u| [u.first_name, u.last_name].map(&:downcase)}.each do |user|
+      tr
+        td.name = "#{user.first_name} #{user.last_name}"
+        td.age = "#{Time.zone.now.year - user.birthdate.year}"
 					</code></pre>
+          <p class="fragment">
+            Display logic is contained in the view
           </p>
         </section>
 
         <section data-background="#110022">
           <h2>Alternate Plain ol' Rails</h2>
-					<pre><code data-trim contenteditable class="ruby">
+	        <pre><code data-trim contenteditable class="ruby">
 # user.rb
 class User
   scope :by_name, -> { order('first_name, last_name') }
   scope :active, -> { where(:active => true) }
 end
-					</code></pre>
-					<pre><code data-trim contenteditable class="ruby">
+          </code></pre>
+          <pre><code data-trim contenteditable class="ruby">
 # users_controller.rb
 def index
   @users = User.active.by_name
 end
-					</code></pre>
-					<pre><code data-trim contenteditable class="haml">
+          </code></pre>
+          <pre><code data-trim contenteditable class="haml">
 / users/show.slim
 h2 Users
-table
-  - @users.each do |user| 
-    tr
-      td.name = "#{user.first_name} #{user.last_name}"
-      td.age = "#{Time.zone.now.year - user.birthdate.year}"
-					</code></pre>
+  table
+    - @users.each do |user|
+      tr
+        td.name = "#{user.first_name} #{user.last_name}"
+        td.age = "#{Time.zone.now.year - user.birthdate.year}"
+          </code></pre>
+          <p class="fragment">
+            Less display logic in the view
           </p>
         </section>
 
         <section data-background="#220011">
           <h2>Rails + a Presenter (or two)</h2>
-					<pre><code data-trim contenteditable class="ruby">
+	        <pre><code data-trim contenteditable class="ruby">
 # user.rb
 class User
   scope :by_name, -> { order('first_name, last_name') }
   scope :active, -> { where(:active => true) }
 end
-					</code></pre>
-					<pre><code data-trim contenteditable class="ruby">
+	        </code></pre>
+	        <pre><code data-trim contenteditable class="ruby">
 # users_controller.rb
 def index
   @users = UsersPresenter.new
 end
-					</code></pre>
-					<pre><code data-trim contenteditable class="haml">
+	        </code></pre>
+	        <pre><code data-trim contenteditable class="haml">
 / users/show.slim
 h2 Users
-table
-  - @users.each do |user| 
-    tr
-      td.name = user.name
-      td.age = user.age
-					</code></pre>
-          </p>
+  table
+    - @users.each do |user|
+      tr
+        td.name = user.name
+        td.age = user.age
+          </code></pre>
         </section>
 
         <section data-background="#330011">
           <h2>The Presenters</h2>
-					<pre><code data-trim contenteditable class="ruby">
+	        <pre><code data-trim contenteditable class="ruby">
 # users_presenter.rb
 class UsersPresenter
   def users
     @users ||= User.active.by_name.map{|u| UserPresenter.new(u)}
   end
 end
-					</code></pre>
-					<pre><code data-trim contenteditable class="ruby">
+	        </code></pre>
+	        <pre><code data-trim contenteditable class="ruby">
 # user_presenter.rb
 class UserPresenter
 
@@ -175,25 +199,28 @@ class UserPresenter
     @age ||= (Time.zone.now.year - user.birthdate.year)
   end
 end
-					</code></pre>
+	        </code></pre>
+          <p class="fragment">
+            Display Logic is in the presenter
+          </p>
         </section>
 
-				<section data-background="#330022">
-					<section class="fragments">
-					  <h2>What does this buy us?</h2>
-						<ul>
-							<li class="fragment">easy focused testing</li>
-							<li class="fragment">compartmentalization</li>
-							<li class="fragment">re-use across controller methods</li>
-							<li class="fragment"><em>Single Responsibility Principle</em>
-</li>
-						</ul>
+        <section data-background="#330022">
+	        <section class="fragments">
+		        <h2>What does this buy us?</h2>
+		        <ul>
+			        <li class="fragment">easy focused testing</li>
+			        <li class="fragment">compartmentalization</li>
+			        <li class="fragment">re-use across controller methods</li>
+			        <li class="fragment"><em>Single Responsibility Principle</em>
+              </li>
+		        </ul>
           </section>
-				</section>
-
-				<section data-background="#220022">
-					<section class="fragments">
-					  <h2>And?</h2>
+        </section>
+        
+        <section data-background="#220022">
+	        <section class="fragments">
+		        <h2>And?</h2>
             <ul>
               <li class="fragment">memoize safely (stateless object/one time use)</li>
               <li class="fragment">keep business logic out of AR models</li>
@@ -202,23 +229,23 @@ end
             </ul>
             <p class="fragment">try it... I bet you'll find more uses</p>
           </section>
-				</section>
-
-				<section data-background="#330011">
-					<h2>Thanks for not sleeping</h2>
-				</section>
-
-				<section data-background="#110011">
-					<h2>References/Reading list</h2>
-					<ul>
-						<li><a href="http://blog.carbonfive.com/2014/01/07/presenters-to-widgets-with-activemodelconversion/">The Carbon Emitter - Presenters to Widgets</a></li>
-						<li><a href="http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/">Code Climate Blog - 7 Patterns to Refactor Fat ActiveRecord Models</a></li>
+        </section>
+        
+        <section data-background="#330011">
+	        <h2>Thanks for not sleeping</h2>
+        </section>
+        
+        <section data-background="#110011">
+	        <h2>References/Reading list</h2>
+	        <ul>
+		        <li><a href="http://blog.carbonfive.com/2014/01/07/presenters-to-widgets-with-activemodelconversion/">The Carbon Emitter - Presenters to Widgets</a></li>
+		        <li><a href="http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/">Code Climate Blog - 7 Patterns to Refactor Fat ActiveRecord Models</a></li>
             <li><a href="http://blog.jayfields.com/2006/09/rails-model-view-controller-presenter.html">Jay Fields' Thoughts - Rails Model View Controller + Presenter?</a></li>
             <li><a href="http://weblog.jamisbuck.org/2006/10/18/skinny-controller-fat-model">Jamis Buck - Skinny Controller, Fat Model</a></li>
-						<li><a href="http://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility Principle (Wikipedia)</a></li>
+		        <li><a href="http://en.wikipedia.org/wiki/Single_responsibility_principle">Single Responsibility Principle (Wikipedia)</a></li>
             <li><a href="http://martinfowler.com/eaaDev/">Martin Fowler's GUI Patterns</a></li>
             <li><a href="http://www.softwarerenovation.com/ABCMetric.pdf">ABC Metric for Code Complexity</a></li>
-					</ul>
+	        </ul>
           <p>
             &nbsp;
           </p>
@@ -231,43 +258,41 @@ end
             Mr Rogers | jon@carbonfive.com | <img class='logo', src="./i/GitHub-Mark-32px.png"> bunnymatic | <img class="logo" src="https://dev.twitter.com/sites/default/files/images_documentation/bird_blue_32.png"> @rcode5
           </p>
         </section>
+      </div>
+    </div>
 
-			</div>
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.min.js"></script>
 
-		</div>
+<script>
 
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.min.js"></script>
+	// Full list of configuration options available here:
+	// https://github.com/hakimel/reveal.js#configuration
+	Reveal.initialize({
+	controls: true,
+	progress: true,
+	history: true,
+	center: true,
 
-		<script>
+	theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+	transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
 
-			// Full list of configuration options available here:
-			// https://github.com/hakimel/reveal.js#configuration
-			Reveal.initialize({
-				controls: true,
-				progress: true,
-				history: true,
-				center: true,
+	// Parallax scrolling
+	// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+	// parallaxBackgroundSize: '2100px 900px',
 
-				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+	// Optional libraries used to extend on reveal.js
+	dependencies: [
+	{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+	{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+	{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+	{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+	{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+	{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+	]
+	});
 
-				// Parallax scrolling
-				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
-				// parallaxBackgroundSize: '2100px 900px',
+</script>
 
-				// Optional libraries used to extend on reveal.js
-				dependencies: [
-					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
-					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
-				]
-			});
-
-		</script>
-
-	</body>
+</body>
 </html>
