@@ -16,10 +16,15 @@
 }
 
 .reveal .tiny {
+  margin-top: 2em;
   font-size: 0.7em;
   letter-spacing: 0.05em;
 }
+.reveal .tiny span.item {
+  margin: 0 20px;
+}
 .reveal .tiny .logo {
+  background: transparent;
   vertical-align: top;
   border: 0;
   height: 32px;
